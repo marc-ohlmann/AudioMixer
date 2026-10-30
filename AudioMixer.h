@@ -64,6 +64,7 @@ public:
         , _inputStreams()
         , _outputStream(nullptr)
         , _nextStreamId(0)
+        , _masterVolume(1.0f)
     {
         // pre-allocate once
         _inputStreams.reserve(c_MaxStreams);
@@ -143,6 +144,12 @@ public:
         }
     }
 
+    void SetMasterVolume(float volume)
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _masterVolume = volume;
+    }
+
 private:
 
     struct StreamEntry 
@@ -163,6 +170,9 @@ private:
 
     // stream id assignment iterator
     int _nextStreamId;
+    
+    // master output gain multiplier
+    float _masterVolume;
 
 
     // execution target for the mixing thread
@@ -176,11 +186,13 @@ private:
             nextWakeTime += std::chrono::milliseconds(kFrameDurationMs);
 
             IOutputStream* currentOutput = nullptr;
+            float currentVolume = 0.f;
 
             // Lock only while reading streams and summing samples into mixBuffer
             {
                 std::lock_guard<std::mutex> lock(_mutex);
                 currentOutput = _outputStream;
+                currentVolume = _masterVolume;
 
                 for (size_t sampleIterator = 0; sampleIterator < c_SamplesPerFrame; ++sampleIterator)
                 {
@@ -189,9 +201,10 @@ private:
                     {
                         sum += _inputStreams[streamIterator].stream->ReadSample();
                     }
+                    const float mixedOutput = sum * currentVolume;
 
                     // Clamp mixed output to normalized range
-                    mixBuffer[sampleIterator] = std::clamp(sum, -1.0f, 1.0f);
+                    mixBuffer[sampleIterator] = std::clamp(mixedOutput, -1.0f, 1.0f);
                 }
             } // Lock is released here before calling WriteSamples
 

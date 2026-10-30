@@ -162,7 +162,6 @@ int main()
 
 
     // example usage demo:
-
     ConsoleOutputStream consoleOutput;
     AudioMixer mixer;
 
@@ -174,28 +173,38 @@ int main()
     SineWaveStream tone1000(1000.0f, 0.6f); // 1 kHz test tone, 0.6 amplitude
 
     mixer.Start();
-    std::cout << "\n\nMixer started.\n\n";
+    std::cout << "=== INITIAL: Mixer started with no streams -> Expect silence (0.0000) ===\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(35));
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(45));
-
-    std::cout << "\n=== PHASE 1: Mixing two tones (440 Hz @ 0.4 + 880 Hz @ 0.4) ===\n";
     int id1 = mixer.AddInputStream(&tone440);
     int id2 = mixer.AddInputStream(&tone880);
-
+    std::cout << "\n=== PHASE 1: Mixing two tones (440 Hz @ 0.4 + 880 Hz @ 0.4) ===\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 
     int id3 = mixer.AddInputStream(&tone1000);
     std::cout << "\n=== PHASE 2: Adding 3rd tone (1000 Hz @ 0.6) -> Expect clamping at 1.0000 ===\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 
-    mixer.RemoveInputStream(id1);
-    mixer.RemoveInputStream(id3);
-    std::cout << "\n=== PHASE 3: Removing 440 Hz and 1000 Hz -> Only 880 Hz @ 0.4 remains ===\n";
+    mixer.SetMasterVolume(0.5f);
+    std::cout << "\n=== PHASE 3: Attenuating Master Volume to 0.5 -> Pulls 3-stream mix out of clipping ===\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
 
-    mixer.RemoveInputStream(id2);
-    std::cout << "\n=== PHASE 4: Removing last stream -> Expect silence (0.0000) ===\n";
+    mixer.RemoveInputStream(id1);
+    mixer.RemoveInputStream(id3);
+    mixer.SetMasterVolume(2.0f);
+    std::cout << "\n=== PHASE 4: Only 880 Hz @ 0.4 remains + Master Volume boosted to 2.0 -> Expect 0.8000 peak ===\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(45));
+
+    std::cout << "\n=== PHASE 5: Smooth Master Volume fade-out ramp (2.0 -> 0.0) ===\n";
+    for (float volume = 1.75f; volume >= 0.0f; volume -= 0.25f)
+    {
+        mixer.SetMasterVolume(volume);
+        std::this_thread::sleep_for(std::chrono::milliseconds(kFrameDurationMs));
+    }
+
+    mixer.RemoveInputStream(id2);
+    std::cout << "\n=== PHASE 6: Removing last stream -> Expect silence (0.0000) ===\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(35));
 
     mixer.Stop();
     std::cout << "\nMixer stopped.\n";
