@@ -1,6 +1,6 @@
 # Real-Time Audio Mixer Sample
 
-This repository contains a simple C++ sample implementation of a real-time audio mixer. The project demonstrates core systems programming concepts—such as multi-threading, synchronization, and basic audio processing—by mixing multiple sinusoidal tone streams into a single output stream.
+This repository contains a simple C++ sample implementation of a real-time audio mixer. It demonstrates core systems programming concepts, including multi-threading, synchronization, and basic audio processing, by mixing multiple sinusoidal tone streams into a single output stream.
 
 ## Key Features
 
