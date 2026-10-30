@@ -52,50 +52,6 @@ public:
 };
 
 
-// Sine Wave Input Stream
-class SineWaveStream : public IInputStream 
-{
-public:
-
-    SineWaveStream(
-        const float frequencyHz, 
-        const float amplitude = 0.5f, 
-        const uint32_t sampleRate = c_SampleRate
-    )
-        : _frequency(frequencyHz)
-        , _amplitude(std::clamp(amplitude, 0.0f, 1.0f))
-        , _phase(0.0)
-        , _phaseStep((c_TwoPi * frequencyHz) / static_cast<double>(sampleRate))
-    {
-    }
-
-    float ReadSample() override
-    {
-        // iterate phase and calculate
-        float sample = static_cast<float>(_amplitude * std::sin(_phase));
-        _phase += _phaseStep;
-        if (_phase >= c_TwoPi) 
-        {
-            _phase -= c_TwoPi;
-        }
-
-
-        return sample;
-    }
-
-    float GetFrequency() const { return _frequency; }
-    float GetAmplitude() const { return _amplitude; }
-
-private:
-
-    float _frequency;
-    float _amplitude;
-    double _phase;
-    double _phaseStep;
-
-};
-
-
 // Real-Time Audio Mixer
 class AudioMixer 
 {

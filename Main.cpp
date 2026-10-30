@@ -14,8 +14,52 @@
 #include <iomanip>
 
 
-// Concrete Output Stream for visual debugging and verification
-class ConsoleMeterOutputStream : public IOutputStream 
+// Concrete input stream to generate sinusoidal waves
+class SineWaveStream : public IInputStream
+{
+public:
+
+    SineWaveStream(
+        const float frequencyHz,
+        const float amplitude = 0.5f,
+        const uint32_t sampleRate = c_SampleRate
+    )
+        : _frequency(frequencyHz)
+        , _amplitude(std::clamp(amplitude, 0.0f, 1.0f))
+        , _phase(0.0)
+        , _phaseStep((c_TwoPi* frequencyHz) / static_cast<double>(sampleRate))
+    {
+    }
+
+    float ReadSample() override
+    {
+        // iterate phase and calculate
+        float sample = static_cast<float>(_amplitude * std::sin(_phase));
+        _phase += _phaseStep;
+        if (_phase >= c_TwoPi)
+        {
+            _phase -= c_TwoPi;
+        }
+
+
+        return sample;
+    }
+
+    float GetFrequency() const { return _frequency; }
+    float GetAmplitude() const { return _amplitude; }
+
+private:
+
+    float _frequency;
+    float _amplitude;
+    double _phase;
+    double _phaseStep;
+
+};
+
+
+// Concrete output stream for visual debugging and verification
+class ConsoleOutputStream : public IOutputStream 
 {
 public:
 
@@ -63,7 +107,7 @@ private:
 
 int main() {
 
-    ConsoleMeterOutputStream consoleOutput;
+    ConsoleOutputStream consoleOutput;
     AudioMixer mixer;
 
     mixer.SetOutputStream(&consoleOutput);
