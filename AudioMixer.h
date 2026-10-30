@@ -1,8 +1,7 @@
 /*
  * ============================================================================
- * Candidate: Marc Edouard Ohlmann
+ * Candidate: Marc Ohlmann
  * Date: October 29th, 2026
- * Assignment: Plexsys - Senior Software Engineer Take Home
  *
  * Description: A real-time C++ audio mixing API that aggregates multiple
  *              continuous sinusoidal tones into a single output stream.
