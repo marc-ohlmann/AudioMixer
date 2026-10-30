@@ -8,3 +8,8 @@ This repository contains a simple C++ sample implementation of a real-time audio
 * **Dynamic Streams:** Supports adding and removing input streams at runtime.
 * **Buffer Processing:** Sums incoming audio samples frame-by-frame and applies basic amplitude clamping.
 * **Console Demo:** Includes a simple console output stream to display real-time volume meters and sample values for verification.
+
+
+## Example Output
+
+![Console Output Preview](assets/example-output01.png)
