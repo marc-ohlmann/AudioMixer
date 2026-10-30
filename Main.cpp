@@ -198,7 +198,7 @@ int main()
     for (float volume = 1.75f; volume >= 0.0f; volume -= 0.25f)
     {
         mixer.SetMasterVolume(volume);
-        std::this_thread::sleep_for(std::chrono::milliseconds(kFrameDurationMs));
+        std::this_thread::sleep_for(std::chrono::milliseconds(c_FrameDurationMs));
     }
 
     mixer.RemoveInputStream(id2);

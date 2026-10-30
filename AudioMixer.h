@@ -25,8 +25,8 @@ const double c_TwoPi = 2.0 * c_Pi;
 
 const size_t c_MaxStreams = 32;
 const uint32_t c_SampleRate = 48000;
-const uint32_t kFrameDurationMs = 10;
-const size_t c_SamplesPerFrame = (c_SampleRate * kFrameDurationMs) / 1000; // 480 samples per 10ms frame
+const uint32_t c_FrameDurationMs = 10;
+const size_t c_SamplesPerFrame = (c_SampleRate * c_FrameDurationMs) / 1000; // 480 samples per 10ms frame
 
 
 // Abstract Output Stream Interface
@@ -182,7 +182,7 @@ private:
 
         while (_bIsMixingThreadActive.load()) 
         {
-            nextWakeTime += std::chrono::milliseconds(kFrameDurationMs);
+            nextWakeTime += std::chrono::milliseconds(c_FrameDurationMs);
 
             IOutputStream* currentOutput = nullptr;
             float currentVolume = 0.f;
