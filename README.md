@@ -12,4 +12,4 @@ This repository contains a simple C++ sample implementation of a real-time audio
 
 ## Example Output
 
-![Console Output Preview](assets/example-output01.png)
+![Console Output Preview](assets/example-output02.png)
