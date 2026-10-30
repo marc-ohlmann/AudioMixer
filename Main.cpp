@@ -12,6 +12,7 @@
 #include "AudioMixer.h"
 #include <iostream>
 #include <iomanip>
+#include <cassert>
 
 
 // Concrete input stream to generate sinusoidal waves
@@ -22,11 +23,12 @@ public:
     SineWaveStream(
         const float frequencyHz,
         const float amplitude = 0.5f,
+        const double initialPhase = 0.0,
         const uint32_t sampleRate = c_SampleRate
     )
         : _frequency(frequencyHz)
         , _amplitude(std::clamp(amplitude, 0.0f, 1.0f))
-        , _phase(0.0)
+        , _phase(initialPhase)
         , _phaseStep((c_TwoPi* frequencyHz) / static_cast<double>(sampleRate))
     {
     }
@@ -105,7 +107,61 @@ private:
 };
 
 
-int main() {
+// output stream for testing. Asserts that every single sample received is silent (nearly zero).
+class PhaseCancellationTestOutputStream : public IOutputStream
+{
+public:
+    void WriteSamples(const float* buffer, size_t sampleCount) override
+    {
+        for (size_t i = 0; i < sampleCount; ++i)
+        {
+            // Assert that the sample is 0.0 (allowing for tiny floating-point epsilon)
+            assert(std::fabs(buffer[i]) < 0.0001f && "SYSTEM TEST FAILED: Audio was not silent!");
+        }
+        _framesValidated++;
+    }
+
+    int GetFramesValidated() const { return _framesValidated; }
+
+private:
+    int _framesValidated = 0;
+};
+
+
+void RunPhaseCancellationSystemTest()
+{
+    std::cout << "--- Running Automated System Test (Phase Cancellation) ---\n";
+
+    AudioMixer testMixer;
+    PhaseCancellationTestOutputStream testStream;
+    testMixer.SetOutputStream(&testStream);
+
+    // Create two identical tones, but shift the second one by exactly 180 degrees
+    SineWaveStream normalTone(440.0f, 0.5f, 0.0);
+    SineWaveStream invertedTone(440.0f, 0.5f, c_Pi);
+
+    testMixer.AddInputStream(&normalTone);
+    testMixer.AddInputStream(&invertedTone);
+
+    testMixer.Start();
+
+    // Let the mixer process frames for a short duration
+    std::this_thread::sleep_for(std::chrono::milliseconds(55));
+
+    testMixer.Stop();
+
+    // If the assert() inside WriteSamples didn't trigger, the math perfectly canceled out.
+    std::cout << "SUCCESS: " << testStream.GetFramesValidated() << " frames perfectly canceled out to zero.\n\n";
+}
+
+
+int main() 
+{
+    // run tests
+    RunPhaseCancellationSystemTest();
+
+
+    // example usage demo:
 
     ConsoleOutputStream consoleOutput;
     AudioMixer mixer;
